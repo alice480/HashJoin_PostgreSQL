@@ -1,5 +1,7 @@
-#ifndef HASHTABLE_HASH_TABLE_H
-#define HASHTABLE_HASH_TABLE_H
+#ifndef SRC_HASHTABLE_HASH_TABLE_H
+#define SRC_HASHTABLE_HASH_TABLE_H
+
+#include "../DynamicArray/dynamic_array.h"
 
 #include <math.h>
 #include <stdbool.h>
@@ -32,9 +34,9 @@ void FreeHashTable(HashTable* table);
 
 // void HandleCollision(HashTable* table, HashItem* item);
 void InsertIntoHashTable(HashTable* table, int key, int value);
-unsigned int CalculateMultiplicativeHashFunc(int key, unsigned int hash_table_size);
+unsigned int GetHashValue(int key, unsigned int hash_table_size);
 
-int SearchByKey(HashTable *table, int key);
+DynamicArray *SearchByKey(HashTable *table, int key);
 
 
-#endif  // HASHTABLE_HASH_TABLE_H
+#endif  // SRC_HASHTABLE_HASH_TABLE_H
