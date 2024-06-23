@@ -2,6 +2,7 @@
     "files.associations": {
         "hash_table.h": "c",
         "stdlib.h": "c",
-        "math.h": "c"
+        "math.h": "c",
+        "array": "c"
     }
 }

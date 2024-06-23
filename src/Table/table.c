@@ -1,20 +1,31 @@
 #include "table.h"
 
-Table* CreateTable(int rows) {
+Table* CreateTable(int fields) {
     Table *table = (Table *)malloc(sizeof(Table));
-    table->size = rows;
-    table->rows = (Row **)calloc(rows, sizeof(Row *));
+    table->rows = (Row **)malloc(sizeof(Row *));
+    table->size = 0;
+    table->fields_count = fields;
     return table;
 }
 
-void InsertIntoRow(Table *table, unsigned int row_number, int a, int b) {
+void InsertIntoTable(Table *table, int *fields) {
+    // creating a line
     Row *row = (Row *)malloc(sizeof(Row));
-    row->a = a;
-    row->b = b;
-    table->rows[row_number] = row;
+ 
+    // copying fields to a string
+    unsigned int fields_count = table->fields_count;
+    row->fields = (int *)calloc(fields_count, sizeof(int));
+    for (unsigned int i = 0; i < fields_count; ++i)
+        row->fields[i] = fields[i];
+
+    // increasing the table by one row
+    table->size++;
+    table->rows = (Row **)realloc(table->rows, table->size * sizeof(Row *));
+    table->rows[table->size - 1] = row;
 }
 
 void FreeRow(Row *row) {
+    free(row->fields);
     free(row);
 }
 

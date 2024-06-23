@@ -5,18 +5,17 @@
 #include <stdlib.h>
 
 typedef struct Row {
-    int a;
-    int b;
+    int *fields;
 } Row;
 
 typedef struct Table {
     Row** rows;
+    unsigned int fields_count;
     unsigned int size;
 } Table;
 
-
-Table* CreateTable(int rows);
-void InsertIntoRow(Table *table, unsigned int row_number, int a, int b);
+Table* CreateTable(int fields);
+void InsertIntoTable(Table *table, int *fields);
 void FreeRow(Row *row);
 void FreeTable(Table *table);
 

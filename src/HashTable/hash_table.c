@@ -7,7 +7,7 @@ HashItem *CreateItem(int key, int value) {
     return item;
 }
 
-unsigned int CalculateSizeOfHashTable(int elements) {
+unsigned int ChooseHashTableSize(int elements) {
     // the coefficient for obtaining
     // the effective size of the hash table
     double fill_factor = 0.62;
@@ -17,59 +17,55 @@ unsigned int CalculateSizeOfHashTable(int elements) {
 HashTable *CreateHashTable(int elements) {
     HashTable *table = (HashTable *)malloc(sizeof(HashTable));
     table->count = 0;
-    table->size = CalculateSizeOfHashTable(elements);
+    table->size = ChooseHashTableSize(elements);
     table->items = (HashItem **)calloc(table->size, sizeof(HashItem *));
     for (unsigned int i = 0; i < table->size; ++i)
         table->items[i] = NULL;
     return table;
 }
 
-void InsertIntoHashTable(HashTable *table, int key, int value) {
+void HashTableInsert(HashTable *hashtable, int key, int value) {
     HashItem *item = CreateItem(key, value);
-    unsigned int hash_index = GetHashValue(key, table->size);
-    if (table->count != table->size) {
-        if (!table->items[hash_index]) {
+    unsigned int hash_index = GetHashValue(key, hashtable->size);
+    if (hashtable->count != hashtable->size) {
+        if (!hashtable->items[hash_index]) {
             // inserting into a free cell
-            table->items[hash_index] = item;
-            table->count++;
+            hashtable->items[hash_index] = item;
+            hashtable->count++;
         }
         else {
             // search for a free cell
-            unsigned int hash_table_size = table->size;
-            while (table->items[hash_index]) {
+            unsigned int hashtable_size = hashtable->size;
+            while (hashtable->items[hash_index]) {
                 hash_index++;
-                hash_index %= hash_table_size;
+                hash_index %= hashtable_size;
             }
-            if (!table->items[hash_index])
-                table->items[hash_index] = item;
+            if (!hashtable->items[hash_index])
+                hashtable->items[hash_index] = item;
         }
     }
     else
-    {
         printf("Table is full!");
-    }
 }
 
-unsigned int GetHashValue(int key, unsigned int hash_table_size) {
+unsigned int GetHashValue(int key, unsigned int hashtable_size) {
     const double kGoldenRatio = (sqrt(5) - 1) / 2;
-    return (unsigned int)(hash_table_size * fmod(key * kGoldenRatio, 1));
+    return (unsigned int)(hashtable_size * fmod(key * kGoldenRatio, 1));
 }
 
 DynamicArray *SearchByKey(HashTable *table, int key) {
     unsigned int hash_index = GetHashValue(key, table->size);
     unsigned int viewed_indexes = 0;
-    unsigned int hash_table_size = table->size;
+    unsigned int hashtable_size = table->size;
 
     DynamicArray *found_values = CreateDynamicArray();
-    while (table->items[hash_index] && viewed_indexes != hash_table_size) {
-        if (table->items[hash_index]->key == key) {
+    while (table->items[hash_index] && viewed_indexes != hashtable_size) {
+        if (table->items[hash_index]->key == key)
             InsertIntoDynamicArray(found_values, table->items[hash_index]->value);
-        }
         viewed_indexes++;
         hash_index++;
-        hash_index %= hash_table_size;
+        hash_index %= hashtable_size;
     }
-    // printf("%d\n", found_values->size);
     return found_values;
 }
 
@@ -81,7 +77,6 @@ void FreeHashTable(HashTable *table) {
     for (unsigned int i = 0; i < table->size; ++i)
         if (table->items[i])
             FreeHashItem(table->items[i]);
-
     free(table->items);
     free(table);
 }
