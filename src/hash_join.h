@@ -5,6 +5,6 @@
 #include "HashTable/hash_table.h"
 #include "Table/table.h"
 
-Table *HashJoin(Table *t1, Table *t2);
+Table *HashJoinImpl(Table *t1, Table *t2);
 
 #endif  // SRC_HASH_JOIN_H

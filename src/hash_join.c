@@ -1,56 +1,66 @@
 #include "hash_join.h"
 
-Table *HashJoin(Table *t1, Table *t2) {
-    HashTable *hashtable;
-    Table *table_for_seq_scan, *table_for_hashtable;
+
+/* ----------------------------------------------------------------
+ *		HashJoinImpl
+ *      
+ *      1. Creating a hash table from a smaller table.
+ *      2. Sequential scanning of a larger table
+ *      3. Creating a table with a result set
+ *
+ *		Note: the relation we build hash table on is the "inner"
+ *			  the other one is "outer".
+ * ----------------------------------------------------------------
+ */
+Table *HashJoinImpl(Table *t1, Table *t2) {
+    HashJoinTable *hashtable;
+    Table *inner, *outer;
     // choosing a smaller table to create a hash table
     if (t1->size < t2->size) {
-        hashtable = CreateHashTable(t1->size);
-        table_for_seq_scan = t2;
-        table_for_hashtable = t1;
+        hashtable = HashTableCreate(t1->size);
+        outer = t2;
+        inner = t1;
     } else {
-        hashtable = CreateHashTable(t2->size);
-        table_for_seq_scan = t1;
-        table_for_hashtable = t2;
+        hashtable = HashTableCreate(t2->size);
+        outer = t1;
+        inner = t2;
     }
     // filling the hash table with values from the table
-    for (unsigned int i = 0; i < table_for_hashtable->size; ++i)
+    for (unsigned int i = 0; i < inner->size; ++i)
         HashTableInsert(hashtable, 
-                        table_for_hashtable->rows[i]->fields[0], 
-                        table_for_hashtable->rows[i]->fields[1]);
+                        inner->rows[i]->fields[0], 
+                        inner->rows[i]->fields[1]);
 
     // table for fields from tables t1 and t2
-    Table *join_table = CreateTable(t1->fields_count + t2->fields_count);
+    Table *join_table = TableCreate(t1->fields_count + t2->fields_count);
     // sequential passage through a larger table
-    for (unsigned int i = 0; i < table_for_seq_scan->size; ++i) {
+    for (unsigned int i = 0; i < outer->size; ++i) {
         // checking for the key in the hash table
-        int hashtable_key = table_for_seq_scan->rows[i]->fields[0];
-        // printf("Key: %d", hashtable_key);
+        int hashtable_key = outer->rows[i]->fields[0];
         DynamicArray *found_values = SearchByKey(hashtable, hashtable_key);
-        int a = table_for_seq_scan->rows[i]->fields[0];
-        int b = table_for_hashtable->rows[i]->fields[1];
-        // printf("%d\n", found_values->size);
+        int a = outer->rows[i]->fields[0];
+        int b = outer->rows[i]->fields[1];
         for (unsigned int j = 0;  j < found_values->size; ++j) {
             int fields[4] = {a, b, a, found_values->values[j]};
-            InsertIntoTable(join_table, fields);
+            TableInsert(join_table, fields);
         }
-        FreeDynamicArray(found_values);
+        DynamicArrayDestroy(found_values);
     }
-    FreeHashTable(hashtable);   
+    HashTableDestroy(hashtable);   
     return join_table;
 }
 
 int main() {
-    Table *t1 = CreateTable(2);
-    Table *t2 = CreateTable(2);
+    Table *t1 = TableCreate(2);
+    Table *t2 = TableCreate(2);
 
     for (unsigned int i = 0; i < 10000; ++i) {
         int fields[2] = {i, i % 100};
-        InsertIntoTable(t1, fields);
-        InsertIntoTable(t2, fields);
+        TableInsert(t1, fields);
+        TableInsert(t2, fields);
     }
 
-    Table *join_table = HashJoin(t1, t2);
+    Table *join_table = HashJoinImpl(t1, t2);
 
     for (unsigned int i = 0; i < join_table->size; ++i) {
         for (unsigned int j = 0; j < join_table->fields_count; ++j)
@@ -58,7 +68,7 @@ int main() {
         printf("\n");
     }
 
-    FreeTable(t1);
-    FreeTable(t2);
-    FreeTable(join_table);
+    TableDestroy(t1);
+    TableDestroy(t2);
+    TableDestroy(join_table);
 }

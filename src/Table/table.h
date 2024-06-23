@@ -14,9 +14,9 @@ typedef struct Table {
     unsigned int size;
 } Table;
 
-Table* CreateTable(int fields);
-void InsertIntoTable(Table *table, int *fields);
-void FreeRow(Row *row);
-void FreeTable(Table *table);
+Table* TableCreate(int fields);
+void TableInsert(Table *table, int *fields);
+void RowDestroy(Row *row);
+void TableDestroy(Table *table);
 
 #endif  // SRC_TABLE_TABLE_H

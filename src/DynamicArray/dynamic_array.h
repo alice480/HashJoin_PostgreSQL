@@ -9,9 +9,9 @@ typedef struct DynamicArray {
     unsigned int size;
 } DynamicArray;
 
-DynamicArray *CreateDynamicArray();
-void InsertIntoDynamicArray(DynamicArray* array, int value);
-void FreeDynamicArray(DynamicArray *array);
+DynamicArray *DynamicArrayCreate();
+void DynamicArrayInsert(DynamicArray* array, int value);
+void DynamicArrayDestroy(DynamicArray *array);
 
 
 #endif  // SRC_DYNAMICARRAY_DYNAMIC_ARRAY_H

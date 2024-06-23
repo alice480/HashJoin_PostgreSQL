@@ -1,82 +1,134 @@
 #include "hash_table.h"
 
-HashItem *CreateItem(int key, int value) {
+HashItem *CreateItem(uint32_t key, uint32_t value) {
     HashItem *item = (HashItem *)malloc(sizeof(HashItem));
     item->key = key;
     item->value = value;
     return item;
 }
 
-unsigned int ChooseHashTableSize(int elements) {
+/* ----------------------------------------------------------------
+ *      ChooseHashTableSize
+ *
+ *      Compute appropriate size for hashtable 
+ *      given the estimated number of rows
+ * ----------------------------------------------------------------
+ */
+unsigned int ChooseHashTableSize(int rows) {
     // the coefficient for obtaining
     // the effective size of the hash table
     double fill_factor = 0.62;
-    return pow(2, ceil(log2(elements / fill_factor)));
+    return pow(2, ceil(log2(rows / fill_factor)));
 }
 
-HashTable *CreateHashTable(int elements) {
-    HashTable *table = (HashTable *)malloc(sizeof(HashTable));
+
+/* ----------------------------------------------------------------
+ *		HashTableCreate
+ *
+ *		Create an empty hashtable data structure for hashjoin.
+ * ----------------------------------------------------------------
+ */
+HashJoinTable *HashTableCreate(int rows) {
+    HashJoinTable *table = (HashJoinTable *)malloc(sizeof(HashJoinTable));
     table->count = 0;
-    table->size = ChooseHashTableSize(elements);
+    table->size = ChooseHashTableSize(rows);
     table->items = (HashItem **)calloc(table->size, sizeof(HashItem *));
     for (unsigned int i = 0; i < table->size; ++i)
         table->items[i] = NULL;
     return table;
 }
 
-void HashTableInsert(HashTable *hashtable, int key, int value) {
+void HashTableInsert(HashJoinTable *hashtable, uint32_t key, uint32_t value) {
     HashItem *item = CreateItem(key, value);
-    unsigned int hash_index = GetHashValue(key, hashtable->size);
-    if (hashtable->count != hashtable->size) {
-        if (!hashtable->items[hash_index]) {
-            // inserting into a free cell
-            hashtable->items[hash_index] = item;
-            hashtable->count++;
-        }
-        else {
-            // search for a free cell
-            unsigned int hashtable_size = hashtable->size;
-            while (hashtable->items[hash_index]) {
-                hash_index++;
-                hash_index %= hashtable_size;
+    uint32_t hash_value;
+    if (HashGetHashValue(hashtable, key, &hash_value)) {
+        if (hashtable->count != hashtable->size) {
+            if (!hashtable->items[hash_value]) {
+                // inserting into a free cell
+                hashtable->items[hash_value] = item;
+                hashtable->count++;
             }
-            if (!hashtable->items[hash_index])
-                hashtable->items[hash_index] = item;
+            else {
+                // search for a free cell
+                unsigned int hashtable_size = hashtable->size;
+                while (hashtable->items[hash_value]) {
+                    hash_value++;
+                    hash_value %= hashtable_size;
+                }
+                if (!hashtable->items[hash_value])
+                    hashtable->items[hash_value] = item;
+            }
         }
+        else
+            printf("Table is full!");
     }
-    else
-        printf("Table is full!");
 }
 
-unsigned int GetHashValue(int key, unsigned int hashtable_size) {
+/*
+ *      HashGetHashValue
+ *		
+ *      Compute the hash value for a tuple
+ *
+ *      A true result means the hash value has been successfully computed
+ *      and stored at *hashvalue.  A false result means the tuple cannot match
+ *      because it contains a null attribute, and hence it should be discarded
+ *      immediately
+ */
+
+bool HashGetHashValue(HashJoinTable* hashtable, uint32_t key, uint32_t *hashvalue) {
+    // if (key != MY_NULL) { 
+    //     const double kGoldenRatio = (sqrt(5) - 1) / 2;
+    //     *hashvalue = (uint32_t)(hashtable->size * fmod(key * kGoldenRatio, 1));
+    // }
     const double kGoldenRatio = (sqrt(5) - 1) / 2;
-    return (unsigned int)(hashtable_size * fmod(key * kGoldenRatio, 1));
+    *hashvalue = (uint32_t)(hashtable->size * fmod(key * kGoldenRatio, 1));
+    return (true);
 }
 
-DynamicArray *SearchByKey(HashTable *table, int key) {
-    unsigned int hash_index = GetHashValue(key, table->size);
-    unsigned int viewed_indexes = 0;
-    unsigned int hashtable_size = table->size;
+// unsigned int HashGetHashValue(uint32_t key, unsigned int hashtable_size) {
+//     const double kGoldenRatio = (sqrt(5) - 1) / 2;
+//     return (unsigned int)(hashtable_size * fmod(key * kGoldenRatio, 1));
+// }
 
-    DynamicArray *found_values = CreateDynamicArray();
-    while (table->items[hash_index] && viewed_indexes != hashtable_size) {
-        if (table->items[hash_index]->key == key)
-            InsertIntoDynamicArray(found_values, table->items[hash_index]->value);
-        viewed_indexes++;
-        hash_index++;
-        hash_index %= hashtable_size;
+DynamicArray *SearchByKey(HashJoinTable *hashtable, uint32_t key) {
+    uint32_t hash_value;
+    DynamicArray *found_values = DynamicArrayCreate();
+    if (HashGetHashValue(hashtable, key, &hash_value)) {
+        unsigned int viewed_indexes = 0;
+        unsigned int hashtable_size = hashtable->size;
+        while (hashtable->items[hash_value] && viewed_indexes != hashtable_size) {
+            if (hashtable->items[hash_value]->key == key)
+                DynamicArrayInsert(found_values, hashtable->items[hash_value]->value);
+            viewed_indexes++;
+            hash_value++;
+            hash_value %= hashtable_size;
+        }
     }
     return found_values;
 }
 
-void FreeHashItem(HashItem *item) {
+
+/* ----------------------------------------------------------------
+ *		HashItemDestroy
+ *
+ *      Destroy the value in the hash table
+ * ----------------------------------------------------------------
+ */
+void HashItemDestroy(HashItem *item) {
     free(item);
 }
 
-void FreeHashTable(HashTable *table) {
+
+/* ----------------------------------------------------------------
+ *		HashTableDestroy
+ *
+ *      Destroy a hash table
+ * ----------------------------------------------------------------
+ */
+void HashTableDestroy(HashJoinTable *table) {
     for (unsigned int i = 0; i < table->size; ++i)
         if (table->items[i])
-            FreeHashItem(table->items[i]);
+            HashItemDestroy(table->items[i]);
     free(table->items);
     free(table);
 }
