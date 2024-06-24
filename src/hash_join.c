@@ -48,27 +48,32 @@ Table *HashJoinImpl(Table *t1, Table *t2) {
   return join_table;
 }
 
+void HashJoinOutput(Table *join_table, const char* filename) {
+  FILE *file = fopen(filename, "w");
+  fprintf(file, "|----------------------------------|\n");
+  fprintf(file, "|  t1.a ||  t1.b ||  t2.a ||  t2.b |\n");
+  fprintf(file, "|----------------------------------|\n");
+
+  for (uint32_t i = 0; i < join_table->size; ++i) {
+    for (uint32_t j = 0; j < join_table->fields_count; ++j)
+      fprintf(file, "| %5d |", join_table->rows[i]->fields[j]);
+    fprintf(file, "\n");
+  }
+  fprintf(file, "|----------------------------------|\n");
+}
+
 int main() {
   Table *t1 = TableCreate(2);
   Table *t2 = TableCreate(2);
 
-  for (int i = 0; i < 9999; ++i) {
+  for (int i = 0; i < 10000; ++i) {
     int fields[2] = {i, i % 100};
     TableInsert(t1, fields);
     TableInsert(t2, fields);
   }
 
-  int fields[2] = {-1, -10};
-  TableInsert(t1, fields);
-  TableInsert(t2, fields);
-
   Table *join_table = HashJoinImpl(t1, t2);
-
-  for (uint32_t i = 0; i < join_table->size; ++i) {
-    for (uint32_t j = 0; j < join_table->fields_count; ++j)
-      printf("|  %d  |", join_table->rows[i]->fields[j]);
-    printf("\n");
-  }
+  HashJoinOutput(join_table, "output.txt");
 
   TableDestroy(t1);
   TableDestroy(t2);
