@@ -14,16 +14,16 @@
 typedef struct HashItem {
     uint32_t key;
     uint32_t value;
-} HashItem;
+} HashNode;
 
 typedef struct HashJoinTable {
-    HashItem** items;
+    HashNode** items;
     unsigned int size;
     unsigned int count;
 } HashJoinTable;
 
 // the function of creating a hash table element
-HashItem* CreateItem(uint32_t key, uint32_t value);
+HashNode* HashNodeCreate(uint32_t key, uint32_t value);
 
 // the function for calculating the number of buckets in the hash table
 unsigned int ChooseHashTableSize(int rows);
@@ -38,7 +38,7 @@ bool HashGetHashValue(HashJoinTable* hashtable, uint32_t key, uint32_t *hashvalu
 DynamicArray *SearchByKey(HashJoinTable *table, uint32_t key);
 
 // memory release functions
-void HashItemDestroy(HashItem* item);
+void HashItemDestroy(HashNode* item);
 void HashTableDestroy(HashJoinTable* table);
 
 
