@@ -39,7 +39,7 @@ Table *HashJoinImpl(Table *t1, Table *t2) {
     uint32_t a = outer->rows[i]->fields[0];
     uint32_t b = outer->rows[i]->fields[1];
     for (uint32_t j = 0; j < found_values->size; ++j) {
-      uint32_t fields[4] = {a, b, a, found_values->values[j]};
+      int fields[4] = {a, b, a, found_values->values[j]};
       TableInsert(join_table, fields);
     }
     DynamicArrayDestroy(found_values);
@@ -52,11 +52,15 @@ int main() {
   Table *t1 = TableCreate(2);
   Table *t2 = TableCreate(2);
 
-  for (uint32_t i = 0; i < 10000; ++i) {
-    uint32_t fields[2] = {i, i % 100};
+  for (int i = 0; i < 9999; ++i) {
+    int fields[2] = {i, i % 100};
     TableInsert(t1, fields);
     TableInsert(t2, fields);
   }
+
+  int fields[2] = {-1, -10};
+  TableInsert(t1, fields);
+  TableInsert(t2, fields);
 
   Table *join_table = HashJoinImpl(t1, t2);
 

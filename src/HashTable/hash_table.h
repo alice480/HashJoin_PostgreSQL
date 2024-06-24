@@ -2,6 +2,7 @@
 #define SRC_HASHTABLE_HASH_TABLE_H
 
 #include "../DynamicArray/dynamic_array.h"
+#include "../Table/table.h"
 
 #include <math.h>
 #include <stdbool.h>
@@ -9,11 +10,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#define MY_NULL 4294967296
-
-typedef struct HashItem {
-    uint32_t key;
-    uint32_t value;
+typedef struct HashNode {
+    int key;
+    int value;
 } HashNode;
 
 typedef struct HashJoinTable {
@@ -22,20 +21,20 @@ typedef struct HashJoinTable {
     uint32_t count;
 } HashJoinTable;
 
-// the function of creating a hash table element
-HashNode* HashNodeCreate(uint32_t key, uint32_t value);
+// the function of creating a hash table node
+HashNode* HashNodeCreate(int key, int value);
 
 // the function for calculating the number of buckets in the hash table
-uint32_t ChooseHashTableSize(int rows);
+uint32_t ChooseHashTableSize(uint32_t rows);
 
 // the function of creating a hash table
-HashJoinTable* HashTableCreate(int rows);
+HashJoinTable* HashTableCreate(uint32_t rows);
 
-// void HandleCollision(HashTable* table, HashItem* item);
-void HashTableInsert(HashJoinTable* hashtable, uint32_t key, uint32_t value);
-bool HashGetHashValue(HashJoinTable* hashtable, uint32_t key, uint32_t *hashvalue);
+// hash table node insertion function
+void HashTableInsert(HashJoinTable* hashtable, int key, int value);
+bool HashGetHashValue(HashJoinTable* hashtable, int key, uint32_t *hashvalue);
 
-DynamicArray *SearchByKey(HashJoinTable *table, uint32_t key);
+DynamicArray *SearchByKey(HashJoinTable *table, int key);
 
 // memory release functions
 void HashItemDestroy(HashNode* item);

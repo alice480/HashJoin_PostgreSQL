@@ -6,7 +6,7 @@
  *      Create a hashtable node with specific values.
  * ----------------------------------------------------------------
  */
-HashNode *HashNodeCreate(uint32_t key, uint32_t value) {
+HashNode *HashNodeCreate(int key, int value) {
   HashNode *node = (HashNode *)malloc(sizeof(HashNode));
   node->key = key;
   node->value = value;
@@ -20,7 +20,7 @@ HashNode *HashNodeCreate(uint32_t key, uint32_t value) {
  *      given the estimated number of rows
  * ----------------------------------------------------------------
  */
-uint32_t ChooseHashTableSize(int rows) {
+uint32_t ChooseHashTableSize(uint32_t rows) {
   /* the coefficient for obtaining
   *  the effective size of the hash table
   */
@@ -34,7 +34,7 @@ uint32_t ChooseHashTableSize(int rows) {
  *		Create an empty hashtable data structure for hashjoin.
  * ----------------------------------------------------------------
  */
-HashJoinTable *HashTableCreate(int rows) {
+HashJoinTable *HashTableCreate(uint32_t rows) {
   HashJoinTable *table = (HashJoinTable *)malloc(sizeof(HashJoinTable));
   table->count = 0;
   table->size = ChooseHashTableSize(rows);
@@ -56,7 +56,7 @@ HashJoinTable *HashTableCreate(int rows) {
  *    into the hash table is performed
  * ----------------------------------------------------------------
  */
-void HashTableInsert(HashJoinTable *hashtable, uint32_t key, uint32_t value) {
+void HashTableInsert(HashJoinTable *hashtable, int key, int value) {
   HashNode *node = HashNodeCreate(key, value);
   uint32_t hash_value;
   if (HashGetHashValue(hashtable, key, &hash_value)) {
@@ -89,15 +89,14 @@ void HashTableInsert(HashJoinTable *hashtable, uint32_t key, uint32_t value) {
  *      because it contains a null attribute, and hence it should be discarded
  *      immediately
  */
-bool HashGetHashValue(HashJoinTable *hashtable, uint32_t key,
+bool HashGetHashValue(HashJoinTable *hashtable, int key,
                       uint32_t *hashvalue) {
-  // if (key != MY_NULL) {
-  //     const double kGoldenRatio = (sqrt(5) - 1) / 2;
-  //     *hashvalue = (uint32_t)(hashtable->size * fmod(key * kGoldenRatio, 1));
-  // }
-  const double kGoldenRatio = (sqrt(5) - 1) / 2;
-  *hashvalue = (uint32_t)(hashtable->size * fmod(key * kGoldenRatio, 1));
-  return (true);
+  bool is_null = IsNull(key);
+  if (!is_null) {
+      const double kGoldenRatio = (sqrt(5) - 1) / 2;
+      *hashvalue = (uint32_t)(hashtable->size * fmod(key * kGoldenRatio, 1));
+  }
+  return !is_null;
 }
 
 // unsigned int HashGetHashValue(uint32_t key, unsigned int hashtable_size) {
@@ -123,7 +122,7 @@ bool HashGetHashValue(HashJoinTable *hashtable, uint32_t key,
  *       which will be returned from the function
  * ----------------------------------------------------------------
  */
-DynamicArray *SearchByKey(HashJoinTable *hashtable, uint32_t key) {
+DynamicArray *SearchByKey(HashJoinTable *hashtable, int key) {
   uint32_t hash_value;
   // the values corresponding to the key are stored in a dynamic array
   DynamicArray *found_values = DynamicArrayCreate();

@@ -8,13 +8,13 @@ Table *TableCreate(uint32_t fields) {
   return table;
 }
 
-void TableInsert(Table *table, uint32_t *fields) {
+void TableInsert(Table *table, int *fields) {
   // creating a line
   Row *row = (Row *)malloc(sizeof(Row));
 
   // copying fields to a row
   uint32_t fields_count = table->fields_count;
-  row->fields = (uint32_t *)calloc(fields_count, sizeof(uint32_t));
+  row->fields = (int *)calloc(fields_count, sizeof(int));
   for (uint32_t i = 0; i < fields_count; ++i) row->fields[i] = fields[i];
 
   // increasing the table by one row
@@ -34,4 +34,8 @@ void TableDestroy(Table *table) {
     if (table->rows[i]) RowDestroy(table->rows[i]);
   free(table->rows);
   free(table);
+}
+
+bool IsNull(int field) {
+  return (field < 0);
 }

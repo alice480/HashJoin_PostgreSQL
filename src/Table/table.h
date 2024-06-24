@@ -4,9 +4,10 @@
 #include <memory.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef struct Row {
-    uint32_t *fields;
+    int *fields;
 } Row;
 
 typedef struct Table {
@@ -16,8 +17,10 @@ typedef struct Table {
 } Table;
 
 Table* TableCreate(uint32_t fields);
-void TableInsert(Table *table, uint32_t *fields);
+void TableInsert(Table *table, int *fields);
 void RowDestroy(Row *row);
 void TableDestroy(Table *table);
+
+bool IsNull(int field);
 
 #endif  // SRC_TABLE_TABLE_H
