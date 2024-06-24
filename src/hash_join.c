@@ -60,6 +60,8 @@ void HashJoinOutput(Table *join_table, const char* filename) {
     fprintf(file, "\n");
   }
   fprintf(file, "|----------------------------------|\n");
+
+  fclose(file);
 }
 
 int main() {

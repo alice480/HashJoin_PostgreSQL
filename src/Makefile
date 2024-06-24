@@ -17,3 +17,6 @@ launch:
 
 clang_format:
 	clang-format -style=google -i $(SOURCE)
+
+leaks: build
+	valgrind -s ./hash_join.out --leak-check=full
