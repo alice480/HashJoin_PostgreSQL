@@ -66,7 +66,7 @@ int main() {
   Table *t1 = TableCreate(2);
   Table *t2 = TableCreate(2);
 
-  for (int i = 0; i < 10000; ++i) {
+  for (int i = 1; i <= 10000; ++i) {
     int fields[2] = {i, i % 100};
     TableInsert(t1, fields);
     TableInsert(t2, fields);
