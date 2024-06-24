@@ -18,15 +18,15 @@ typedef struct HashItem {
 
 typedef struct HashJoinTable {
     HashNode** items;
-    unsigned int size;
-    unsigned int count;
+    uint32_t size;
+    uint32_t count;
 } HashJoinTable;
 
 // the function of creating a hash table element
 HashNode* HashNodeCreate(uint32_t key, uint32_t value);
 
 // the function for calculating the number of buckets in the hash table
-unsigned int ChooseHashTableSize(int rows);
+uint32_t ChooseHashTableSize(int rows);
 
 // the function of creating a hash table
 HashJoinTable* HashTableCreate(int rows);

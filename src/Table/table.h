@@ -3,19 +3,20 @@
 
 #include <memory.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 typedef struct Row {
-    int *fields;
+    uint32_t *fields;
 } Row;
 
 typedef struct Table {
     Row** rows;
-    unsigned int fields_count;
-    unsigned int size;
+    uint32_t fields_count;
+    uint32_t size;
 } Table;
 
-Table* TableCreate(int fields);
-void TableInsert(Table *table, int *fields);
+Table* TableCreate(uint32_t fields);
+void TableInsert(Table *table, uint32_t *fields);
 void RowDestroy(Row *row);
 void TableDestroy(Table *table);
 

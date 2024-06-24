@@ -20,7 +20,7 @@ HashNode *HashNodeCreate(uint32_t key, uint32_t value) {
  *      given the estimated number of rows
  * ----------------------------------------------------------------
  */
-unsigned int ChooseHashTableSize(int rows) {
+uint32_t ChooseHashTableSize(int rows) {
   /* the coefficient for obtaining
   *  the effective size of the hash table
   */
@@ -39,7 +39,7 @@ HashJoinTable *HashTableCreate(int rows) {
   table->count = 0;
   table->size = ChooseHashTableSize(rows);
   table->items = (HashNode **)calloc(table->size, sizeof(HashNode *));
-  for (unsigned int i = 0; i < table->size; ++i) 
+  for (uint32_t i = 0; i < table->size; ++i) 
     table->items[i] = NULL;
   return table;
 }
@@ -67,7 +67,7 @@ void HashTableInsert(HashJoinTable *hashtable, uint32_t key, uint32_t value) {
         hashtable->count++;
       } else {
         // search for a free cell
-        unsigned int hashtable_size = hashtable->size;
+        uint32_t hashtable_size = hashtable->size;
         while (hashtable->items[hash_value]) {
           hash_value++;
           hash_value %= hashtable_size;
@@ -128,8 +128,8 @@ DynamicArray *SearchByKey(HashJoinTable *hashtable, uint32_t key) {
   // the values corresponding to the key are stored in a dynamic array
   DynamicArray *found_values = DynamicArrayCreate();
   if (HashGetHashValue(hashtable, key, &hash_value)) {
-    unsigned int viewed_indexes = 0;
-    unsigned int hashtable_size = hashtable->size;
+    uint32_t viewed_indexes = 0;
+    uint32_t hashtable_size = hashtable->size;
     // viewing from the hash_value to the first NULL
     while (hashtable->items[hash_value] && viewed_indexes != hashtable_size) {
       if (hashtable->items[hash_value]->key == key)
@@ -157,7 +157,7 @@ void HashItemDestroy(HashNode *item) { free(item); }
  * ----------------------------------------------------------------
  */
 void HashTableDestroy(HashJoinTable *table) {
-  for (unsigned int i = 0; i < table->size; ++i)
+  for (uint32_t i = 0; i < table->size; ++i)
     if (table->items[i])
       HashItemDestroy(table->items[i]);
   free(table->items);

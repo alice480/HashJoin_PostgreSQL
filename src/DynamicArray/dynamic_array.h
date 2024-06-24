@@ -3,14 +3,15 @@
 
 #include <memory.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 typedef struct DynamicArray {
-    int* values;
-    unsigned int size;
+    uint32_t* values;
+    uint32_t size;
 } DynamicArray;
 
 DynamicArray *DynamicArrayCreate();
-void DynamicArrayInsert(DynamicArray* array, int value);
+void DynamicArrayInsert(DynamicArray* array, uint32_t value);
 void DynamicArrayDestroy(DynamicArray *array);
 
 
