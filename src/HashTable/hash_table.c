@@ -1,16 +1,51 @@
 #include "hash_table.h"
 
 /* ----------------------------------------------------------------
- *      HashNodeCreate
+ *		HashTableCreate
  *
- *      Create a hashtable node with specific values.
+ *		Create an empty hashtable data structure for hashjoin.
  * ----------------------------------------------------------------
  */
-HashNode *HashNodeCreate(int key, int value) {
-  HashNode *node = (HashNode *)malloc(sizeof(HashNode));
+HashJoinTable *HashTableCreate(uint32_t rows) {
+  HashJoinTable *table = (HashJoinTable *)malloc(sizeof(HashJoinTable));
+  // if memory is allocated
+  if (table) {
+    table->size = ChooseHashTableSize(rows);
+    table->count = 0;
+    table->buckets = (HashBucket **)calloc(table->size, sizeof(HashBucket *));
+    for (uint32_t i = 0; i < table->size; ++i)
+      table->buckets[i] = NULL;
+  }
+  return table;
+}
+
+/* ----------------------------------------------------------------
+ *		HashBucketNodeCreate
+ *
+ *		Create a hash table node with key and value.
+ * ----------------------------------------------------------------
+ */
+HashBucketNode *HashBucketNodeCreate(int key, int value) {
+  HashBucketNode *node = (HashBucketNode *)malloc(sizeof(HashBucketNode));
   node->key = key;
   node->value = value;
   return node;
+}
+
+void HashBucketNodeInsert(HashJoinTable* hashtable, uint32_t hashvalue, HashBucketNode* node) {
+  // if the memory for the bucket is not allocated
+  if (!hashtable->buckets[hashvalue]) {
+    hashtable->buckets[hashvalue] = (HashBucket *)malloc(sizeof(HashBucket));
+    hashtable->buckets[hashvalue]->nodes = (HashBucketNode **)malloc(sizeof(HashBucketNode *));
+    hashtable->buckets[hashvalue]->size = 0;
+  }
+  // if there are nodes in the bucket
+  uint32_t bucket_size = hashtable->buckets[hashvalue]->size;
+  if (bucket_size) {
+    hashtable->buckets[hashvalue]->nodes = (HashBucketNode **)realloc(hashtable->buckets[hashvalue]->nodes, (bucket_size + 1) * sizeof(HashBucketNode *));
+  }
+  hashtable->buckets[hashvalue]->nodes[hashtable->buckets[hashvalue]->size] = node;
+  hashtable->buckets[hashvalue]->size++;
 }
 
 /* ----------------------------------------------------------------
@@ -29,23 +64,6 @@ uint32_t ChooseHashTableSize(uint32_t rows) {
 }
 
 /* ----------------------------------------------------------------
- *		HashTableCreate
- *
- *		Create an empty hashtable data structure for hashjoin.
- * ----------------------------------------------------------------
- */
-HashJoinTable *HashTableCreate(uint32_t rows) {
-  HashJoinTable *table = (HashJoinTable *)malloc(sizeof(HashJoinTable));
-  table->count = 0;
-  table->size = ChooseHashTableSize(rows);
-  table->items = (HashNode **)calloc(table->size, sizeof(HashNode *));
-  for (uint32_t i = 0; i < table->size; ++i) 
-    table->items[i] = NULL;
-  return table;
-}
-
-
-/* ----------------------------------------------------------------
  *		HashTableInsert
  *
  *		Inserting a node into a hashtable.
@@ -57,30 +75,20 @@ HashJoinTable *HashTableCreate(uint32_t rows) {
  * ----------------------------------------------------------------
  */
 void HashTableInsert(HashJoinTable *hashtable, int key, int value) {
-  HashNode *node = HashNodeCreate(key, value);
   uint32_t hash_value;
-  if (HashGetHashValue(hashtable, key, &hash_value)) {
+  // if key = Null, hashvalue will not be received
+  if (GetHashValue(hashtable, key, &hash_value)) {
+    // checking the completeness of the hash table
     if (hashtable->count != hashtable->size) {
-      if (!hashtable->items[hash_value]) {
-        // inserting into a free cell
-        hashtable->items[hash_value] = node;
-        hashtable->count++;
-      } else {
-        // search for a free cell
-        uint32_t hashtable_size = hashtable->size;
-        while (hashtable->items[hash_value]) {
-          hash_value++;
-          hash_value %= hashtable_size;
-        }
-        if (!hashtable->items[hash_value]) hashtable->items[hash_value] = node;
-      }
+      HashBucketNode *node = HashBucketNodeCreate(key, value);
+      HashBucketNodeInsert(hashtable, hash_value, node);
     } else
       printf("Table is full!");
   }
 }
 
 /*
- *      HashGetHashValue
+ *      GetHashValue
  *
  *      Compute the hash value for a tuple
  *
@@ -89,7 +97,7 @@ void HashTableInsert(HashJoinTable *hashtable, int key, int value) {
  *      because it contains a null attribute, and hence it should be discarded
  *      immediately
  */
-bool HashGetHashValue(HashJoinTable *hashtable, int key,
+bool GetHashValue(HashJoinTable *hashtable, int key,
                       uint32_t *hashvalue) {
   bool is_null = IsNull(key);
   if (!is_null) {
@@ -99,19 +107,13 @@ bool HashGetHashValue(HashJoinTable *hashtable, int key,
   return !is_null;
 }
 
-// unsigned int HashGetHashValue(uint32_t key, unsigned int hashtable_size) {
-//     const double kGoldenRatio = (sqrt(5) - 1) / 2;
-//     return (unsigned int)(hashtable_size * fmod(key * kGoldenRatio, 1));
-// }
-
-
 /* ----------------------------------------------------------------
  *    SearchByKey
  *
  *    Searching for values corresponding to the key
  * 
  *    1. The hash_value of the key is calculated
- *    2. HashNodes from hash_value to the first NULL are searched
+ *    2. HashBuckets from hash_value to the first NULL are searched
  *      
  *    Note: NULL means that the following cells 
  *          contain values that do not satisfy the key.
@@ -126,17 +128,11 @@ DynamicArray *SearchByKey(HashJoinTable *hashtable, int key) {
   uint32_t hash_value;
   // the values corresponding to the key are stored in a dynamic array
   DynamicArray *found_values = DynamicArrayCreate();
-  if (HashGetHashValue(hashtable, key, &hash_value)) {
-    uint32_t viewed_indexes = 0;
-    uint32_t hashtable_size = hashtable->size;
-    // viewing from the hash_value to the first NULL
-    while (hashtable->items[hash_value] && viewed_indexes != hashtable_size) {
-      if (hashtable->items[hash_value]->key == key)
-        DynamicArrayInsert(found_values, hashtable->items[hash_value]->value);
-      viewed_indexes++;
-      hash_value++;
-      hash_value %= hashtable_size;
-    }
+  if (GetHashValue(hashtable, key, &hash_value)) {
+    HashBucket *bucket = hashtable->buckets[hash_value];
+    for (uint32_t i = 0; i < bucket->size; ++i)
+      if (bucket->nodes[i]->key == key)
+        DynamicArrayInsert(found_values, bucket->nodes[i]->value);
   }
   return found_values;
 }
@@ -147,7 +143,7 @@ DynamicArray *SearchByKey(HashJoinTable *hashtable, int key) {
  *    Destroy the value in the hash table
  * ----------------------------------------------------------------
  */
-void HashItemDestroy(HashNode *item) { free(item); }
+void HashBucketNodeDestroy(HashBucketNode *node) { free(node); }
 
 /* ----------------------------------------------------------------
  *		HashTableDestroy
@@ -157,8 +153,12 @@ void HashItemDestroy(HashNode *item) { free(item); }
  */
 void HashTableDestroy(HashJoinTable *table) {
   for (uint32_t i = 0; i < table->size; ++i)
-    if (table->items[i])
-      HashItemDestroy(table->items[i]);
-  free(table->items);
+    if (table->buckets[i]) {
+      for (uint32_t j = 0; j < table->buckets[i]->size; ++j)
+        HashBucketNodeDestroy(table->buckets[i]->nodes[j]);
+      free(table->buckets[i]->nodes);
+      free(table->buckets[i]);
+    }
+  free(table->buckets);
   free(table);
 }

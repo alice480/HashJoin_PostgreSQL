@@ -16,24 +16,28 @@ Table *HashJoinImpl(Table *t1, Table *t2) {
   Table *inner, *outer;
   // choosing a smaller table to create a hash table
   if (t1->size < t2->size) {
+    // build hash table for inner relation
     hashtable = HashTableCreate(t1->size);
     outer = t2;
     inner = t1;
   } else {
+    // build hash table for inner relation
     hashtable = HashTableCreate(t2->size);
     outer = t1;
     inner = t2;
   }
-  // filling the hash table with values from the table
+  // fill the hashtable with values from the table
   for (uint32_t i = 0; i < inner->size; ++i)
     HashTableInsert(hashtable, inner->rows[i]->fields[0],
                     inner->rows[i]->fields[1]);
+
+  SearchByKey(hashtable, 1);
 
   // table for fields from tables t1 and t2
   Table *join_table = TableCreate(t1->fields_count + t2->fields_count);
   // sequential passage through a larger table
   for (uint32_t i = 0; i < outer->size; ++i) {
-    // checking for the key in the hash table
+    // check for the presence of the key in the hashtable
     int hashtable_key = outer->rows[i]->fields[0];
     DynamicArray *found_values = SearchByKey(hashtable, hashtable_key);
     uint32_t a = outer->rows[i]->fields[0];

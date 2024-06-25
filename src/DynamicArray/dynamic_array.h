@@ -16,7 +16,7 @@
 #include <stdint.h>
 
 typedef struct DynamicArray {
-    uint32_t* values;
+    int* values;
     uint32_t size;
 } DynamicArray;
 

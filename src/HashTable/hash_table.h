@@ -20,34 +20,41 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-typedef struct HashNode {
+typedef struct HashBucketNode {
     int key;
     int value;
-} HashNode;
+} HashBucketNode;
+
+typedef struct HashBucket {
+    HashBucketNode **nodes;
+    uint32_t size;
+} HashBucket;
 
 typedef struct HashJoinTable {
-    HashNode** items;
+    HashBucket **buckets;
     uint32_t size;
     uint32_t count;
 } HashJoinTable;
 
-// the function of creating a hash table node
-HashNode* HashNodeCreate(int key, int value);
-
-// the function for calculating the number of buckets in the hash table
-uint32_t ChooseHashTableSize(uint32_t rows);
 
 // the function of creating a hash table
 HashJoinTable* HashTableCreate(uint32_t rows);
 
+HashBucketNode *HashBucketNodeCreate(int key, int value);
+
+void HashBucketNodeInsert(HashJoinTable* hashtable, uint32_t hashvalue, HashBucketNode* node);
+
+// the function for calculating the number of buckets in the hash table
+uint32_t ChooseHashTableSize(uint32_t rows);
+
 // hash table node insertion function
 void HashTableInsert(HashJoinTable* hashtable, int key, int value);
-bool HashGetHashValue(HashJoinTable* hashtable, int key, uint32_t *hashvalue);
+bool GetHashValue(HashJoinTable* hashtable, int key, uint32_t *hashvalue);
 
 DynamicArray *SearchByKey(HashJoinTable *table, int key);
 
 // memory release functions
-void HashItemDestroy(HashNode* item);
+void HashBucketNodeDestroy(HashBucketNode *node);
 void HashTableDestroy(HashJoinTable* table);
 
 

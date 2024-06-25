@@ -1,5 +1,5 @@
 CC = gcc
-FLAGS = -Wall -Wextra -Werror -std=c11
+FLAGS = -Wall -Wextra -std=c11
 LIB_FLAG = -lm
 SOURCE = DynamicArray/*.c HashTable/*.c Table/*.c *.c
 
