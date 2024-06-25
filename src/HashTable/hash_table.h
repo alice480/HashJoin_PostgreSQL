@@ -1,3 +1,13 @@
+/*-------------------------------------------------------------------------
+ *
+ * nodeHash.h
+ *	  prototypes for hash_table.c
+ *
+ *
+ * src/HashTable/hash_table.h
+ *
+ *-------------------------------------------------------------------------
+ */
 #ifndef SRC_HASHTABLE_HASH_TABLE_H
 #define SRC_HASHTABLE_HASH_TABLE_H
 

@@ -1,3 +1,13 @@
+/*-------------------------------------------------------------------------
+ *
+ * dynamic_array.h
+ *	  prototypes for dynamic_array.c
+ *
+ *
+ * src/DynamicArray/dynamic_array.h
+ *
+ *-------------------------------------------------------------------------
+ */
 #ifndef SRC_DYNAMICARRAY_DYNAMIC_ARRAY_H
 #define SRC_DYNAMICARRAY_DYNAMIC_ARRAY_H
 
