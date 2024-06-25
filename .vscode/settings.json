@@ -3,6 +3,9 @@
         "hash_table.h": "c",
         "stdlib.h": "c",
         "math.h": "c",
-        "array": "c"
+        "array": "c",
+        "string_view": "c",
+        "initializer_list": "c",
+        "utility": "c"
     }
 }

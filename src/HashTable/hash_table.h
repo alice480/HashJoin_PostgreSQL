@@ -32,7 +32,7 @@ typedef struct HashBucket {
 
 typedef struct HashJoinTable {
   HashBucket **buckets;
-  uint32_t size;
+  uint32_t nbuckets;
   uint32_t count;
 } HashJoinTable;
 

@@ -4,18 +4,22 @@
  *		HashTableCreate
  *
  *		Create an empty hashtable data structure for hashjoin.
+ *
+ * (ExecHashTableCreate
+ *    https://github.com/postgres/postgres/blob/REL_15_2/src/backend/executor/nodeHash.c)
  * ----------------------------------------------------------------
  */
 HashJoinTable *HashTableCreate(uint32_t rows) {
-  HashJoinTable *table = (HashJoinTable *)malloc(sizeof(HashJoinTable));
+  HashJoinTable *hashtable = (HashJoinTable *)malloc(sizeof(HashJoinTable));
   // if memory is allocated
-  if (table) {
-    table->size = ChooseHashTableSize(rows);
-    table->count = 0;
-    table->buckets = (HashBucket **)calloc(table->size, sizeof(HashBucket *));
-    for (uint32_t i = 0; i < table->size; ++i) table->buckets[i] = NULL;
+  if (hashtable) {
+    // nbuckets must be a power of 2
+    hashtable->nbuckets = ChooseHashTableSize(rows);
+    hashtable->count = 0;
+    hashtable->buckets = (HashBucket **)calloc(hashtable->nbuckets, sizeof(HashBucket *));
+    for (uint32_t i = 0; i < hashtable->nbuckets; ++i) hashtable->buckets[i] = NULL;
   }
-  return table;
+  return hashtable;
 }
 
 /* ----------------------------------------------------------------
@@ -60,6 +64,9 @@ void HashBucketNodeInsert(HashJoinTable *hashtable, uint32_t hashvalue,
  *
  *      Compute appropriate size for hashtable
  *      given the estimated number of rows
+ * 
+ *  (ExecChooseHashTableSize
+ *    https://github.com/postgres/postgres/blob/REL_15_2/src/backend/executor/nodeHash.c)
  * ----------------------------------------------------------------
  */
 uint32_t ChooseHashTableSize(uint32_t rows) {
@@ -73,11 +80,15 @@ uint32_t ChooseHashTableSize(uint32_t rows) {
 /* ----------------------------------------------------------------
  *		HashTableInsert
  *
- *		Insert the node into the hash table.
+ *		Insert the node into the hash table 
+ *      depending on the hash value.
  *    Collisions are resolved using a list of nodes.
  *
  *    If the key is NULL, no insertion
  *    into the hash table is performed
+ * 
+ *  (ExecHashTableInsert
+ *    https://github.com/postgres/postgres/blob/REL_15_2/src/backend/executor/nodeHash.c)
  * ----------------------------------------------------------------
  */
 void HashTableInsert(HashJoinTable *hashtable, int key, int value) {
@@ -85,7 +96,7 @@ void HashTableInsert(HashJoinTable *hashtable, int key, int value) {
   // if key = Null, hashvalue will not be received
   if (GetHashValue(hashtable, key, &hashvalue)) {
     // checking the completeness of the hash table
-    if (hashtable->count != hashtable->size) {
+    if (hashtable->count != hashtable->nbuckets) {
       HashBucketNode *node = HashBucketNodeCreate(key, value);
       HashBucketNodeInsert(hashtable, hashvalue, node);
     } else
@@ -104,12 +115,16 @@ void HashTableInsert(HashJoinTable *hashtable, int key, int value) {
  *      A false result means the tuple cannot match
  *      because it contains a null attribute,
  *      and hence it should be discarded immediately.
+ * 
+ *  (ExecHashGetHashValue
+ *    https://github.com/postgres/postgres/blob/REL_15_2/src/backend/executor/nodeHash.c)
+ * ----------------------------------------------------------------
  */
 bool GetHashValue(HashJoinTable *hashtable, int key, uint32_t *hashvalue) {
   bool is_null = IsNull(key);
   if (!is_null) {
     const double kGoldenRatio = (sqrt(5) - 1) / 2;
-    *hashvalue = (uint32_t)(hashtable->size * fmod(key * kGoldenRatio, 1));
+    *hashvalue = (uint32_t)(hashtable->nbuckets * fmod(key * kGoldenRatio, 1));
   }
   return !is_null;
 }
@@ -149,10 +164,13 @@ void HashBucketNodeDestroy(HashBucketNode *node) { free(node); }
  *		HashTableDestroy
  *
  *    Destroy a hash table
+ * 
+ * (ExecHashTableDestroy
+ *    https://github.com/postgres/postgres/blob/REL_15_2/src/backend/executor/nodeHash.c)
  * ----------------------------------------------------------------
  */
 void HashTableDestroy(HashJoinTable *table) {
-  for (uint32_t i = 0; i < table->size; ++i)
+  for (uint32_t i = 0; i < table->nbuckets; ++i)
     if (table->buckets[i]) {
       for (uint32_t j = 0; j < table->buckets[i]->size; ++j)
         HashBucketNodeDestroy(table->buckets[i]->nodes[j]);

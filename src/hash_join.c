@@ -9,6 +9,9 @@
  *
  *		Note: the relation we build hash table on is the "inner"
  *			  the other one is "outer".
+ *
+ * (ExecHashJoinImpl
+ *    https://github.com/postgres/postgres/blob/REL_15_2/src/backend/executor/nodeHashjoin.c)
  * ----------------------------------------------------------------
  */
 Table *HashJoinImpl(Table *t1, Table *t2) {
