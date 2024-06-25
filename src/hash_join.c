@@ -34,8 +34,6 @@ Table *HashJoinImpl(Table *t1, Table *t2) {
     HashTableInsert(hashtable, inner->rows[i]->fields[0],
                     inner->rows[i]->fields[1]);
 
-  SearchByKey(hashtable, 1);
-
   // table for fields from tables t1 and t2
   Table *join_table = TableCreate(t1->fields_count + t2->fields_count);
   // sequential passage through a larger table

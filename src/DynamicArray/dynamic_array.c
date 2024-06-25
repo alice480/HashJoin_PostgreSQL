@@ -1,5 +1,7 @@
 #include "dynamic_array.h"
 
+#include <stdio.h>
+
 DynamicArray *DynamicArrayCreate() {
   DynamicArray *array = (DynamicArray *)malloc(sizeof(DynamicArray));
   array->values = (int *)malloc(sizeof(int));
