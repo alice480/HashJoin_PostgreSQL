@@ -35,17 +35,17 @@ HashBucketNode *HashBucketNodeCreate(int key, int value) {
 void HashBucketNodeInsert(HashJoinTable* hashtable, uint32_t hashvalue, HashBucketNode* node) {
   // if the memory for the bucket is not allocated
   if (!hashtable->buckets[hashvalue]) {
-    hashtable->buckets[hashvalue] = (HashBucket *)malloc(sizeof(HashBucket));
-    hashtable->buckets[hashvalue]->nodes = (HashBucketNode **)malloc(sizeof(HashBucketNode *));
-    hashtable->buckets[hashvalue]->size = 0;
+    HashBucket *bucket = (HashBucket *)malloc(sizeof(HashBucket));
+    bucket->nodes = (HashBucketNode **)malloc(sizeof(HashBucketNode *));
+    bucket->size = 0;
+    hashtable->buckets[hashvalue] = bucket;
   }
+  HashBucket *bucket = hashtable->buckets[hashvalue];
   // if there are nodes in the bucket
-  uint32_t bucket_size = hashtable->buckets[hashvalue]->size;
-  if (bucket_size) {
-    hashtable->buckets[hashvalue]->nodes = (HashBucketNode **)realloc(hashtable->buckets[hashvalue]->nodes, (bucket_size + 1) * sizeof(HashBucketNode *));
-  }
-  hashtable->buckets[hashvalue]->nodes[hashtable->buckets[hashvalue]->size] = node;
-  hashtable->buckets[hashvalue]->size++;
+  if (bucket->size)
+    bucket->nodes = (HashBucketNode **)realloc(bucket->nodes, (bucket->size + 1) * sizeof(HashBucketNode *));
+  bucket->nodes[bucket->size] = node;
+  bucket->size++;
 }
 
 /* ----------------------------------------------------------------
