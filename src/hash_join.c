@@ -3,9 +3,9 @@
 /* ----------------------------------------------------------------
  *		HashJoinImpl
  *
- *      1. Creating a hash table from a smaller table.
- *      2. Sequential scanning of a larger table
- *      3. Creating a table with a result set
+ *      1. Create a hash table from a smaller table;
+ *      2. Sequentially scan a larger table;
+ *      3. Create a table with the result set
  *
  *		Note: the relation we build hash table on is the "inner"
  *			  the other one is "outer".
@@ -52,7 +52,7 @@ Table *HashJoinImpl(Table *t1, Table *t2) {
   return join_table;
 }
 
-void HashJoinOutput(Table *join_table, const char* filename) {
+void HashJoinOutput(Table *join_table, const char *filename) {
   FILE *file = fopen(filename, "w");
   fprintf(file, "|----------------------------------|\n");
   fprintf(file, "|  t1.a ||  t1.b ||  t2.a ||  t2.b |\n");

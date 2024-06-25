@@ -11,51 +11,46 @@
 #ifndef SRC_HASHTABLE_HASH_TABLE_H
 #define SRC_HASHTABLE_HASH_TABLE_H
 
+#include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "../DynamicArray/dynamic_array.h"
 #include "../Table/table.h"
 
-#include <math.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-
 typedef struct HashBucketNode {
-    int key;
-    int value;
+  int key;
+  int value;
 } HashBucketNode;
 
 typedef struct HashBucket {
-    HashBucketNode **nodes;
-    uint32_t size;
+  HashBucketNode **nodes;
+  uint32_t size;
 } HashBucket;
 
 typedef struct HashJoinTable {
-    HashBucket **buckets;
-    uint32_t size;
-    uint32_t count;
+  HashBucket **buckets;
+  uint32_t size;
+  uint32_t count;
 } HashJoinTable;
 
-
-// the function of creating a hash table
-HashJoinTable* HashTableCreate(uint32_t rows);
-
+// structure creation functions
+HashJoinTable *HashTableCreate(uint32_t rows);
 HashBucketNode *HashBucketNodeCreate(int key, int value);
 
-void HashBucketNodeInsert(HashJoinTable* hashtable, uint32_t hashvalue, HashBucketNode* node);
+// functions of insertion into structures
+void HashBucketNodeInsert(HashJoinTable *hashtable, uint32_t hashvalue,
+                          HashBucketNode *node);
+void HashTableInsert(HashJoinTable *hashtable, int key, int value);
 
-// the function for calculating the number of buckets in the hash table
 uint32_t ChooseHashTableSize(uint32_t rows);
-
-// hash table node insertion function
-void HashTableInsert(HashJoinTable* hashtable, int key, int value);
-bool GetHashValue(HashJoinTable* hashtable, int key, uint32_t *hashvalue);
-
+bool GetHashValue(HashJoinTable *hashtable, int key, uint32_t *hashvalue);
 DynamicArray *SearchByKey(HashJoinTable *table, int key);
 
 // memory release functions
 void HashBucketNodeDestroy(HashBucketNode *node);
-void HashTableDestroy(HashJoinTable* table);
-
+void HashTableDestroy(HashJoinTable *table);
 
 #endif  // SRC_HASHTABLE_HASH_TABLE_H

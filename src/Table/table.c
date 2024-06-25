@@ -36,6 +36,4 @@ void TableDestroy(Table *table) {
   free(table);
 }
 
-bool IsNull(int field) {
-  return (field < 0);
-}
+bool IsNull(int field) { return (field < 0); }

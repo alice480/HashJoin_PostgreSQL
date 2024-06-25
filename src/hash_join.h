@@ -17,6 +17,6 @@
 
 Table *HashJoinImpl(Table *t1, Table *t2);
 
-void HashJoinOutput(Table *join_table, const char* filename);
+void HashJoinOutput(Table *join_table, const char *filename);
 
 #endif  // SRC_HASH_JOIN_H

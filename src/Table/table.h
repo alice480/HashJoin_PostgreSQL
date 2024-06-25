@@ -12,21 +12,21 @@
 #define SRC_TABLE_TABLE_H
 
 #include <memory.h>
-#include <stdlib.h>
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 typedef struct Row {
-    int *fields;
+  int *fields;
 } Row;
 
 typedef struct Table {
-    Row** rows;
-    uint32_t fields_count;
-    uint32_t size;
+  Row **rows;
+  uint32_t fields_count;
+  uint32_t size;
 } Table;
 
-Table* TableCreate(uint32_t fields);
+Table *TableCreate(uint32_t fields);
 void TableInsert(Table *table, int *fields);
 void RowDestroy(Row *row);
 void TableDestroy(Table *table);
