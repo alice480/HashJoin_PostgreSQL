@@ -16,7 +16,8 @@
 #include "Table/table.h"
 
 Table *HashJoinImpl(Table *t1, Table *t2);
-
+uint32_t HashIncreaseNumBatches(float size);
 void HashJoinOutput(Table *join_table, const char *filename);
+
 
 #endif  // SRC_HASH_JOIN_H

@@ -49,6 +49,7 @@ void HashBucketNodeInsert(HashJoinTable *hashtable, uint32_t hashvalue,
     bucket->nodes = (HashBucketNode **)malloc(sizeof(HashBucketNode *));
     bucket->size = 0;
     hashtable->buckets[hashvalue] = bucket;
+    hashtable->count++;  // increasing the number of filled buckets
   }
   HashBucket *bucket = hashtable->buckets[hashvalue];
   // if there are nodes in the bucket
@@ -143,11 +144,16 @@ DynamicArray *SearchByKey(HashJoinTable *hashtable, int key) {
   uint32_t hashvalue;
   // the values corresponding to the key are stored in a dynamic array
   DynamicArray *found_values = DynamicArrayCreate();
+
   if (GetHashValue(hashtable, key, &hashvalue)) {
-    HashBucket *bucket = hashtable->buckets[hashvalue];
-    for (uint32_t i = 0; i < bucket->size; ++i)
-      if (bucket->nodes[i]->key == key)
-        DynamicArrayInsert(found_values, bucket->nodes[i]->value);
+    if (hashvalue < hashtable->nbuckets) {
+      HashBucket *bucket = hashtable->buckets[hashvalue];
+      if (bucket) {
+        for (uint32_t i = 0; i < bucket->size; ++i)
+          if (bucket->nodes[i]->key == key)
+            DynamicArrayInsert(found_values, bucket->nodes[i]->value);
+      }
+    }
   }
   return found_values;
 }
