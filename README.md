@@ -63,3 +63,16 @@ Execution Time: 6.245 ms
 | HashJoinTable          | Содержит массив buckets, размер таблицы, количество занятых bucket      |
 | HashBucket             | Содержит массив nodes, размер bucket                                    |
 | HashBucketNode         | Содержит ключ и значение                                                |
+
+
+|       Функции          |                         Описание                                        |
+| ---------------------- | ----------------------------------------------------------------------- |
+| HashTableCreate        | Создать хэш-таблицу HashJoinTable                                       |
+| ChooseHashTableSize    | Определить размер хэш-таблицы                                           |
+| HashBucketNodeCreate   | Создать узел HashBucketNode                                             |
+| HashBucketNodeInsert   | Вставить узел в хэш-таблицу в bucket с номером hashvalue                |
+| HashTableInsert        | Вставить в хэш-таблицу пару (key, value)                                |
+| GetHashValue           | Вычислить хэш-значение, которому будет соответствовать номер bucket     |
+| SearchByKey            | Выполнить поиск в хэш-таюлице по переданному key                        |
+| HashBucketNodeDestroy  | Освободить память из-под узла хэш-таблицы                               |
+| HashTableDestroy       | Освободить память из-под хэш-таблицы                                    |

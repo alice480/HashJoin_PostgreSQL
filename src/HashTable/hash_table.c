@@ -23,6 +23,24 @@ HashJoinTable *HashTableCreate(uint32_t rows) {
 }
 
 /* ----------------------------------------------------------------
+ *      ChooseHashTableSize
+ *
+ *      Compute appropriate size for hashtable
+ *      given the estimated number of rows
+ * 
+ *  (ExecChooseHashTableSize
+ *    https://github.com/postgres/postgres/blob/REL_15_2/src/backend/executor/nodeHash.c)
+ * ----------------------------------------------------------------
+ */
+uint32_t ChooseHashTableSize(uint32_t rows) {
+  /* the coefficient for obtaining
+   *  the effective size of the hash table
+   */
+  double fill_factor = 0.62;
+  return pow(2, ceil(log2(rows / fill_factor)));
+}
+
+/* ----------------------------------------------------------------
  *		HashBucketNodeCreate
  *
  *		Create a hash table node with key and value.
@@ -58,24 +76,6 @@ void HashBucketNodeInsert(HashJoinTable *hashtable, uint32_t hashvalue,
         bucket->nodes, (bucket->size + 1) * sizeof(HashBucketNode *));
   bucket->nodes[bucket->size] = node;
   bucket->size++;
-}
-
-/* ----------------------------------------------------------------
- *      ChooseHashTableSize
- *
- *      Compute appropriate size for hashtable
- *      given the estimated number of rows
- * 
- *  (ExecChooseHashTableSize
- *    https://github.com/postgres/postgres/blob/REL_15_2/src/backend/executor/nodeHash.c)
- * ----------------------------------------------------------------
- */
-uint32_t ChooseHashTableSize(uint32_t rows) {
-  /* the coefficient for obtaining
-   *  the effective size of the hash table
-   */
-  double fill_factor = 0.62;
-  return pow(2, ceil(log2(rows / fill_factor)));
 }
 
 /* ----------------------------------------------------------------
@@ -159,9 +159,9 @@ DynamicArray *SearchByKey(HashJoinTable *hashtable, int key) {
 }
 
 /* ----------------------------------------------------------------
- *		HashItemDestroy
+ *		HashBucketNodeDestroy
  *
- *    Destroy the value in the hash table
+ *    Destroy the node in the hash table
  * ----------------------------------------------------------------
  */
 void HashBucketNodeDestroy(HashBucketNode *node) { free(node); }
